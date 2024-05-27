@@ -98,3 +98,69 @@ CREATE TABLE venda (
     FOREIGN KEY (codCliente) REFERENCES cliente (codCliente) ON DELETE cascade ON UPDATE no action,
     FOREIGN KEY (codVendedor) REFERENCES vendedor (codVendedor) ON DELETE set default ON UPDATE cascade
 );
+
+CREATE TABLE itemVenda (
+	codVenda INT,
+    codProduto INT,
+    numeroLote INT,
+    quantidade DECIMAL(14, 2) NOT NULL CHECK (quantidade >= 0),
+    PRIMARY KEY (codVenda, codProduto, numeroLote),
+    FOREIGN KEY (codVenda) REFERENCES venda (codVenda) ON DELETE cascade ON UPDATE cascade,
+    FOREIGN KEY (codProduto, numeroLote) REFERENCES produtoLote (codProduto, numeroLote) ON DELETE restrict
+);
+
+CREATE TABLE fornecedor (
+	codFornecedor INT PRIMARY KEY,
+    nomeFantasia VARCHAR(80) UNIQUE,
+    razaoSocial VARCHAR(80) UNIQUE NOT NULL,
+    ie VARCHAR(20) UNIQUE NOT NULL,
+    cgc VARCHAR(20) UNIQUE NOT NULL,
+    endereco VARCHAR(60),
+    telefone VARCHAR(20),
+    codCidade INT,
+    FOREIGN KEY (codCidade) REFERENCES cidade (codCidade) ON DELETE restrict ON UPDATE cascade
+);
+
+CREATE TABLE pedido (
+	codPedido INT AUTO_INCREMENT PRIMARY KEY,
+    dataRealizacao DATE DEFAULT(CURDATE()),
+    dataEntrega DATE,
+    codFornecedor INT,
+    valor DECIMAL(20, 2),
+    FOREIGN KEY (codFornecedor) REFERENCES fornecedor (codFornecedor) ON DELETE cascade ON UPDATE set null
+);
+
+CREATE TABLE itemPedido (
+	codPedido INT,
+    codProduto INT,
+    quantidade DECIMAL(14, 2) NOT NULL CHECK (quantidade >= 0),
+    PRIMARY KEY (codPedido, codProduto),
+    FOREIGN KEY (codPedido) REFERENCES pedido (codPedido) ON DELETE cascade ON UPDATE cascade,
+    FOREIGN KEY (codProduto) REFERENCES produto (codProduto) 
+);
+
+CREATE TABLE contasPagar (
+	codTitulo INT PRIMARY KEY,
+    dataVencimento DATE NOT NULL,
+    parcela INT,
+    codPedido INT,
+    valor DECIMAl(20, 2),
+    dataPagamento DATE,
+    localPagamento VARCHAR(80),
+    juros DECIMAL(12, 2),
+    correcaoMonetaria DECIMAL(12, 2),
+    FOREIGN KEY (codPedido) REFERENCES pedido (codPedido) ON DELETE cascade ON UPDATE cascade
+);
+
+CREATE TABLE contasReceber (
+	codTitulo INT PRIMARY KEY,
+    dataVencimento DATE NOT NULL,
+    codVenda INT NOT NULL,
+    parcela INT,
+    valor DECIMAL(20, 2),
+    dataPagamento DATE,
+    localPagamento VARCHAR(80),
+    juros DECIMAL(12, 2),
+    correcaoMonetaria DECIMAL(12, 2),
+    FOREIGN KEY (codVenda) REFERENCES venda (codVenda) ON DELETE cascade ON UPDATE cascade
+);
